@@ -1,5 +1,5 @@
 import re
-def p1_oneliner(): # python mfs be like yup that's pythonic!
+def p1_oneliner(): # python mfs be like but it's pythonic!
     result = sum([int(a) * int(b) for a,b in
                   [re.search(r'[0-9]{1,3},[0-9]{1,3}', item).group().split(',')
                    for item in re.findall(r'mul\([0-9]{1,3},[0-9]{1,3}\)', open('input.txt', 'r').read())]])
