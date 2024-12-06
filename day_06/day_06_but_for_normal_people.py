@@ -14,7 +14,7 @@ with open('./testinput.txt', 'r') as file:
 	data = file.read().split('\n')
 world = {(y,x): data[y][x] for y in range(len(data)) for x in range(len(data[0]))}
 translations_clock = [(-1, 0), (0, 1), (1, 0), (0, -1)]
-obstacle_char = '#'
+OBSTACLE_CHAR = '#0'
 visited_char = 'X'
 guard_pos = None
 #guard_pos = (77, 59) # y x
@@ -33,47 +33,52 @@ _start_ = True
 path_taken = []
 infinite_loops = 0
 itercount = 0
+SPEED = .0
+open('output_visualization.txt', 'w').close()
+original_data = [[char for char in line] for line in data]
 while True:
+	print()
 	guard_pos = GUARD_START_POS
-	world = copy.copy(WORLD_DEFAULT)
+	world = copy.deepcopy(WORLD_DEFAULT)
 	facing_index = 0
 	obstacles_hit = dict()
-	last_obstacles = []
+	obstacle_history = []
+	_visual_world = copy.deepcopy(original_data)
 	if not _start_:
 		itercount += 1
 		if itercount > len(path_taken) - 1: break
-		print(f'Starting iteration {itercount}')
-		sleep(.2)
-		world[path_taken[itercount]] = obstacle_char
-	repeated_hits = 0
+		print(f'{itercount} out of {len(path_taken)} paths attempted')
+		sleep(SPEED)
+		world[path_taken[itercount]] = OBSTACLE_CHAR[0]
+		print(_visual_world)
+		print(path_taken[itercount])
+		_visual_world[path_taken[itercount][0]][path_taken[itercount][1]] = OBSTACLE_CHAR[1]
 	while True:
 		if _start_: path_taken.append(guard_pos)
 		next_step = tuple_add(guard_pos, translations_clock[facing_index])
 		in_front = world.get(next_step, -1)
 		if in_front != '.':
 			if in_front == -1:
+				if not _start_: print('No infinite loop')
 				_start_ = False
 				break
-			if in_front != obstacle_char: raise ThatCantBeRightException('That ain\'t right man.', in_front)
+			if in_front not in OBSTACLE_CHAR: raise ThatCantBeRightException('That ain\'t right man.', in_front)
 			facing_index = facing_index + 1 if facing_index + 1 < len(translations_clock) else 0
 			if not obstacles_hit.get(next_step, None):
 				obstacles_hit[next_step] = 0
 			obstacles_hit[next_step] += 1
-			if next_step in last_obstacles:
-				repeated_hits += 1
-			else:
-				repeated_hits = repeated_hits - 1 if repeated_hits - 1 >= 0 else 0
-			print(repeated_hits)
-			if repeated_hits > 5:
+			obstacle_history.append((next_step, obstacles_hit[next_step]))
+			if len(obstacle_history) > 4: obstacle_history.pop(0)
+			if all(_ob[1] >= 6 for _ob in obstacle_history):
 				infinite_loops += 1
-				print(f'INFINITE LOOP DETECTED! ({infinite_loops})')
+				print('INFINITE LOOP DETECTED!')
+				with open('output_visualization.txt', 'a') as file:
+					file.write('\n'.join([''.join(line) for line in _visual_world]) + '\n\n')
 				break
-			last_obstacles.append(next_step)
-			if len(last_obstacles) > 4: last_obstacles.pop(0)
 			print(f'Obstacle {next_step} hit {obstacles_hit[next_step]} times')
 			continue
 		guard_pos =  next_step
-		sleep(.2)
+		sleep(SPEED / 10)
 print(infinite_loops)
 # 5403
 # 5404!!!!
