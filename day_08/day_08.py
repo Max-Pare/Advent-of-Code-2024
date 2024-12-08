@@ -15,6 +15,8 @@ grid_raw = '............\n' \
 MAX_X, MAX_Y = len(grid_raw[0]) - 1, len(grid_raw) - 1
 grid_d = {(x, y): grid_raw[y][x] for y in range(len(grid_raw)) for x in range(len(grid_raw[0]))}
 
+def get_sign(val):
+	return 1 if val == abs(val) else - 1
 
 class Vector2:
 
@@ -40,9 +42,8 @@ class Vector2:
 
 	@staticmethod
 	def normalize(v):
-		if v[0] == v[1]: return 1, 1
-		if v[0] < v[1]: return 1, v[1] - (v[0] - 1)
-		if v[1] < v[0]: return  v[0] - (v[1] - 1), 1
+		if v[0] == v[1]: return 1 * get_sign(v[0]), 1  * get_sign(v[1])
+		if v[0] < v[1]: pass
 		return None
 
 	@staticmethod
@@ -79,8 +80,8 @@ class Vector2:
 		return list(points)
 
 	@staticmethod
-	def find_antinodes(v1:tuple[int,int], v2:tuple[int,int], max_x=MAX_X, max_y=MAX_Y):
-		_offset = Vector2.normalize(Vector2.abs(Vector2.sub(v1,v2)))
+	def put_antinodes(v1:tuple[int,int], v2:tuple[int,int], max_x=MAX_X, max_y=MAX_Y):
+		_offset = Vector2.normalize(Vector2.sub(v1,v2))
 		points = [Vector2.add(v1, _offset), Vector2.add(v1, Vector2.negate(_offset)),
 		          Vector2.add(v2, _offset), Vector2.add(v2, Vector2.negate(_offset))]
 		return [p for p in points if p and all(not c_ < 0 for c_ in p) and p != v1 and p != v2]
@@ -89,15 +90,26 @@ class Vector2:
 	def direction(v1, v2):
 		return Vector2.add(v1, v2)
 
+print(Vector2.points_on_line((2,0),(0,7)))
+exit()
 antinodes = []
 for point0, char0 in grid_d.items():
+	if char0 == '.':
+		continue
 	for point1, char1 in grid_d.items():
-		if (point0 == point1) or (char0 == '.' or char1 == '.') or (char0 != char1): continue
-		antinodes += Vector2.find_antinodes(point0, point1)
+		if (point0 == point1) or (char1 == '.') or (char0 != char1): continue
+		print(point0, point1)
+		print(char0, char1)
+		a_nodes = Vector2.put_antinodes(point0, point1)
+		print(a_nodes)
+		antinodes += a_nodes
+		print()
 
 antinodes = set(antinodes)
 print(antinodes)
 print(len(antinodes))
-'''_visual = [grid_d[y][x] for y in range(len(grid_raw)) for x in range(len(grid_raw[0]))]
-for antinode in antinodes:
-	_visual[][]'''
+_visual = [[grid_raw[y][x]  for x in range(len(grid_raw[0]))]for y in range(len(grid_raw))]
+for x,y in antinodes:
+	_visual[y][x] = '#'
+with open('./visual.txt','w') as file:
+	file.write(''.join('\n'.join([' '.join(row) for row in _visual])))
