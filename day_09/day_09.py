@@ -29,45 +29,46 @@ print(total_p1)
 # ===========
 del decompressed[-1]
 work_data = copy.deepcopy(decompressed)
-
+__da, __em = [],[]
 _new_data = []
 for _group in work_data:
 	if not _group: continue
 	if _group and '.' not in _group:
 		_new_data.append(_group)
+		__da.append(_group)
 		continue
 	if all(_c == '.' for _c in _group):
 		_new_data.append(_group)
+		__em.append(_group)
 		continue
-
-
-rec_count = 0
-def sorter(_list, already_sorted):
-	if not already_sorted: already_sorted = []
+print(len(__da), len(__em))
+def sorter(_list, already_sorted, rec_count=0):
+	print(rec_count)
+	rec_count += 1
+	if not already_sorted: already_sorted = set()
 	already_sorted = deepcopy(already_sorted)
 	#print(already_sorted)
 	for j in range(len(_list) - 1, 0, -1):
 		_d_group = _list[j]
-		if _d_group in already_sorted: continue
-		if _d_group[0] not in '0123456789': continue
+		if str(_d_group) in already_sorted: continue
+		if _d_group[0][0] not in '0123456789': continue
+		_actual_size = len(_d_group[0] * len(_d_group))
 		for i, space in enumerate(_list):
 			if space[0] != '.': continue
-			#print('d group:', _d_group, 'space:', space)
-			#print(len(_d_group), len(space))
-			if len(_d_group) > len(space):
-				already_sorted.append(_d_group)
+			if _actual_size > len(space):
+				already_sorted.add(str(_d_group))
 				continue
-			_leftover = len(space) - len(_d_group)
-			#print(f'{_list[i]} <----> {_list[j]}')
-			#print(_leftover)
-			_list[i], _list[j] = _d_group, ((['-'] * len(_d_group[0])) * len(_d_group))
+			_leftover = len(space) - _actual_size
+			_list[i], _list[j] = _d_group, (['-'] * _actual_size)
 			if _leftover > 0:
 				_list.insert(i + 1, ['.'] * _leftover)
-			already_sorted.append(_d_group)
-			return sorter(deepcopy(_list), already_sorted)
+			already_sorted.add(str(_d_group))
+			return sorter(deepcopy(_list), already_sorted,rec_count)
 	return _list
 
-_final = sorter(_new_data[:], [])
+
+_final = sorter(_new_data[:], set(), 0)
+print('Done recursing or whatever')
 #print(_final)
 #assert len(_1d_data) == len(_1d_data_p2)
 #print(_final)
